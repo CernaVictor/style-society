@@ -1,24 +1,39 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import "antd/dist/antd.css";
+import Routes from "./Routes";
+import { AppContext } from "./context/AuthContext";
 
 function App() {
+  const [user, setUser] = React.useState(null);
+  const [cart, setCart] = React.useState({});
+
+  React.useEffect(() => {
+    const loggedInUser = localStorage.getItem("user");
+    const storageCart = localStorage.getItem("cart");
+    if (loggedInUser) {
+      const foundUser = JSON.parse(loggedInUser);
+      setUser(foundUser);
+    }
+    if (storageCart) {
+      const foundCart = JSON.parse(storageCart);
+      setCart(foundCart);
+    }
+  }, []);
+
+  const customSetCart = (newCart) => {
+    if (user?.id) {
+      const userCart = { ...cart, [user?.id]: newCart };
+      localStorage.setItem("cart", JSON.stringify(userCart));
+      setCart(userCart);
+    }
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <AppContext.Provider
+      value={{ user, setUser, cart: cart[user?.id] ?? [], customSetCart }}
+    >
+      <Routes />
+    </AppContext.Provider>
   );
 }
 
